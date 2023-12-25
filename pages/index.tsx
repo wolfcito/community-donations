@@ -59,7 +59,7 @@ export default function Home() {
                 className="rounded-xl"
               />
             </div>
-            <div className="flex-grow w-full max-w-md">
+            <div className="flex-grow w-full max-w-md bg-secondary p-0.5 rounded-full">
               <IntegerInput value={txValue} onChange={setTxValue} placeholder="value (wei)" />
             </div>
             <button
