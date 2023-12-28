@@ -1,15 +1,16 @@
-import { useState } from 'react'
+import { useCallback, useState } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
 import clsx from 'clsx'
 import { nanoid } from 'nanoid'
 import { MetaHeader } from '~~/components/meta-header'
 import { LoaderIcon, ViewIcon } from '~~/components/icons'
-import { Balance, IntegerInput, getParsedError } from '~~/components/scaffold-eth'
+import { Balance, getParsedError } from '~~/components/scaffold-eth'
 import { projectsSupported } from '~~/constants'
 import { useDeployedContractInfo, useScaffoldContractWrite } from '~~/hooks/scaffold-eth'
 import { useTargetNetwork } from '~~/hooks/scaffold-eth/useTargetNetwork'
 import { notification } from '~~/utils/scaffold-eth'
+import { CustomInput } from '~~/components/scaffold-eth/Input/custom-input'
 
 export default function Home() {
   const [txValue, setTxValue] = useState<string | bigint>('')
@@ -19,13 +20,29 @@ export default function Home() {
     functionName: 'donate',
   })
 
+  const multiplyBy1e18 = useCallback(
+    (value: string | bigint) => {
+      if (!value) {
+        return
+      }
+      if (typeof value === 'bigint') {
+        return value * 10n ** 18n
+      }
+      return BigInt(Math.round(Number(value) * 10 ** 18))
+    },
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [txValue],
+  )
+
   const handleWrite = async () => {
     if (writeAsync) {
       try {
-        writeAsync({ value: BigInt(txValue) })
+        writeAsync({ value: multiplyBy1e18(txValue) })
       } catch (e: any) {
         const message = getParsedError(e)
         notification.error(message)
+      } finally {
+        setTxValue('')
       }
     }
   }
@@ -60,7 +77,7 @@ export default function Home() {
               />
             </div>
             <div className="flex-grow w-full max-w-md bg-secondary p-0.5 rounded-full">
-              <IntegerInput value={txValue} onChange={setTxValue} placeholder="value (wei)" />
+              <CustomInput value={txValue} onChange={setTxValue} placeholder="value (wei)" />
             </div>
             <button
               onClick={() => handleWrite()}
